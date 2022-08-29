@@ -21,6 +21,11 @@ func handleWebSocket(c *gin.Context) {
 			c.String(http.StatusInternalServerError, err.Error())
 		}
 
+		var client *Client
+		host := "127.0.0.1"
+		port := 2009
+		name := "User1"
+
 		for {
 			// Client からのメッセージを読み込む
 			msg := ""
@@ -29,8 +34,38 @@ func handleWebSocket(c *gin.Context) {
 				c.String(http.StatusInternalServerError, err.Error())
 			}
 
-			// Client からのメッセージを元に返すメッセージを作成し送信する
-			err := websocket.Message.Send(ws, fmt.Sprintf("Server: \"%s\" received!", msg))
+			var response string
+			switch msg {
+			case "connect":
+				client, err = NewClient(name, host, port)
+				if err != nil {
+					fmt.Print(err)
+				}
+				defer client.Close()
+			case "gr":
+				response, err = client.GetReady()
+			default:
+				response, err = client.Order(msg)
+			}
+			if err != nil {
+				fmt.Print(err)
+			}
+			fmt.Print(msg, response)
+
+			if client == nil {
+				continue
+			}
+
+			if client.GameSet {
+				err := websocket.Message.Send(ws, fmt.Sprintf("%s", "GameSet!!"))
+				if err != nil {
+					c.String(http.StatusInternalServerError, err.Error())
+				}
+				break
+			}
+
+			// CHaserClient の結果を整形してWebClientにメッセージを送信する
+			err := websocket.Message.Send(ws, fmt.Sprintf("%s", response))
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
 			}
