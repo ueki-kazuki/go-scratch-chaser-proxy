@@ -5,20 +5,20 @@ package main
 //
 import (
 	"fmt"
+	"net/http"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/gin-gonic/gin"
 	"golang.org/x/net/websocket"
 )
 
-func handleWebSocket(c echo.Context) error {
+func handleWebSocket(c *gin.Context) {
 	websocket.Handler(func(ws *websocket.Conn) {
 		defer ws.Close()
 
 		// 初回のメッセージを送信
 		err := websocket.Message.Send(ws, "Server: Hello, Client!")
 		if err != nil {
-			c.Logger().Error(err)
+			c.String(http.StatusInternalServerError, err.Error())
 		}
 
 		for {
@@ -26,23 +26,24 @@ func handleWebSocket(c echo.Context) error {
 			msg := ""
 			err = websocket.Message.Receive(ws, &msg)
 			if err != nil {
-				c.Logger().Error(err)
+				c.String(http.StatusInternalServerError, err.Error())
 			}
 
 			// Client からのメッセージを元に返すメッセージを作成し送信する
 			err := websocket.Message.Send(ws, fmt.Sprintf("Server: \"%s\" received!", msg))
 			if err != nil {
-				c.Logger().Error(err)
+				c.String(http.StatusInternalServerError, err.Error())
 			}
 		}
-	}).ServeHTTP(c.Response(), c.Request())
-	return nil
+	}).ServeHTTP(c.Writer, c.Request)
 }
 
 func main() {
-	e := echo.New()
-	e.Use(middleware.Logger())
-	e.Static("/", "public")
-	e.GET("/ws", handleWebSocket)
-	e.Logger.Fatal(e.Start(":8080"))
+	r := gin.Default()
+	r.GET("/ws", handleWebSocket)
+	// r.Static("/", "./public/")
+	// r.StaticFS("/", http.Dir("public"))
+	r.StaticFile("/", "./public/index.html")
+	r.StaticFile("/main.js", "./public/main.js")
+	r.Run(":8080")
 }
