@@ -5,7 +5,10 @@ package main
 //
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/websocket"
@@ -33,24 +36,37 @@ func handleWebSocket(c *gin.Context) {
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
 			}
+			log.Println(msg)
+			args := strings.Split(msg, " ")
+			cmd, args := args[0], args[1:]
+			log.Println(cmd, args)
 
 			var response string
-			switch msg {
+			switch cmd {
 			case "connect":
+				if len(args) > 2 {
+					host = args[0]
+					name = args[2]
+					port, err = strconv.Atoi(args[1])
+					if err != nil {
+						c.String(http.StatusInternalServerError, err.Error())
+					}
+				}
+
 				client, err = NewClient(name, host, port)
 				if err != nil {
-					fmt.Print(err)
+					log.Println(err)
 				}
 				defer client.Close()
 			case "gr":
 				response, err = client.GetReady()
 			default:
-				response, err = client.Order(msg)
+				response, err = client.Order(cmd)
 			}
 			if err != nil {
-				fmt.Print(err)
+				log.Println(err)
 			}
-			fmt.Print(msg, response)
+			log.Println(cmd, response)
 
 			if client == nil {
 				continue
