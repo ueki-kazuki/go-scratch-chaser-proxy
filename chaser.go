@@ -37,10 +37,15 @@ type Client struct {
 }
 
 func NewClient(name string, host string, port int) (*Client, error) {
-	ip := net.ParseIP(host)
-	if ip == nil {
-		return nil, errors.New("ParseIP Error")
+	ips, err := net.LookupIP(host)
+	if err != nil {
+		ip := net.ParseIP(host)
+		if ip == nil {
+			return nil, errors.New("ParseIP Error")
+		}
+		ips[0] = ip
 	}
+	ip := ips[0]
 	conn, err := textproto.Dial("tcp", fmt.Sprintf("%s:%d", ip, port))
 	if err != nil {
 		log.Println(err)
