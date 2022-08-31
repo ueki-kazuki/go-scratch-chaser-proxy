@@ -86,12 +86,12 @@ func (client *Client) Order(command string) (string, error) {
 		log.Println("GameSet!!")
 		client.conn.Close()
 		client.GameSet = true
-		return "", errors.New("GameSet")
+		return response, errors.New("GameSet")
 	case '1':
 		log.Printf("%v\n", response)
 	default:
 		log.Println("responce error")
-		return "", errors.New("responce error")
+		return response, errors.New("responce error")
 	}
 	if command != "gr" {
 		if err := client.conn.PrintfLine(""); err != nil {

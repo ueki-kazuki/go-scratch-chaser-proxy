@@ -58,18 +58,36 @@ func handleWebSocket(c *gin.Context) {
 					log.Println(err)
 				}
 				defer client.Close()
+
+				err := websocket.Message.Send(ws, "Connected successfully")
+				if err != nil {
+					c.String(http.StatusInternalServerError, err.Error())
+				}
 			case "gr":
+				if client == nil {
+					c.String(http.StatusInternalServerError, "Do connect as first")
+					continue
+				}
 				response, err = client.GetReady()
+				if err != nil {
+					log.Println(err)
+				}
 			default:
+				if client == nil {
+					c.String(http.StatusInternalServerError, "Do connect as first")
+					continue
+				}
 				response, err = client.Order(cmd)
-			}
-			if err != nil {
-				log.Println(err)
+				if err != nil {
+					log.Println(err)
+				}
 			}
 			log.Println(cmd, response)
 
-			if client == nil {
-				continue
+			// CHaserClient の結果を整形してWebClientにメッセージを送信する
+			err := websocket.Message.Send(ws, fmt.Sprintf("%s", response))
+			if err != nil {
+				c.String(http.StatusInternalServerError, err.Error())
 			}
 
 			if client.GameSet {
@@ -78,12 +96,6 @@ func handleWebSocket(c *gin.Context) {
 					c.String(http.StatusInternalServerError, err.Error())
 				}
 				break
-			}
-
-			// CHaserClient の結果を整形してWebClientにメッセージを送信する
-			err := websocket.Message.Send(ws, fmt.Sprintf("%s", response))
-			if err != nil {
-				c.String(http.StatusInternalServerError, err.Error())
 			}
 		}
 	}).ServeHTTP(c.Writer, c.Request)
