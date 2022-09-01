@@ -5,19 +5,14 @@ Scratch3とCHaserサーバーを仲介するプロキシープログラムです
 Scratch3（ブラウザ）は仕様上、直接CHaserサーバーとTCP/IPのSocket通信を行うことはできません。そのためこのプログラムがクライアントとサーバーのやりとりを仲介します。
 
 ```mermaid
-graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
-```
-
-```mermaid
-graph TD;
-    id1(Chrome) --> id2(Scratch3 Extension) -- (WebSocket) --> id3(go-scratch-chaser-proxy);
-    id3 -- (socket) --> id4(CHaser Server);
-    id4 --> id3;
-    id3 --> id2;
+sequenceDiagram
+    participant Chrome
+    participant Scratch3
+    Chrome->>Scratch3: Use Extension (GetReady)
+    Scratch3->>go-scratch-chaser-proxy: WebSocket (ws://localhost:8080/ws)
+    go-scratch-chaser-proxy->>CHaserServer: TCP/IP Socket (127.0.0.1 2009/2010)
+    CHaserServer->>go-scratch-chaser-proxy: 1001001001
+    go-scratch-chaser-proxy->>Scratch3:  1001001001
 ```
 
 # 使い方
