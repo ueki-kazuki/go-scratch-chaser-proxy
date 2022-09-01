@@ -37,6 +37,8 @@ type Client struct {
 }
 
 func NewClient(name string, host string, port int) (*Client, error) {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
 	ips, err := net.LookupIP(host)
 	if err != nil {
 		ip := net.ParseIP(host)
@@ -74,6 +76,7 @@ func (client *Client) Close() {
 }
 
 func (client *Client) Order(command string) (string, error) {
+	log.Println(command)
 	if err := client.conn.PrintfLine("%v", command); err != nil {
 		return "", err
 	}
@@ -81,6 +84,7 @@ func (client *Client) Order(command string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	log.Println(response)
 	switch response[0] {
 	case '0':
 		log.Println("GameSet!!")
@@ -103,11 +107,12 @@ func (client *Client) Order(command string) (string, error) {
 
 func (client *Client) GetReady() (string, error) {
 	log.Println("GetReady")
-	res, err := client.conn.ReadLine()
+	response, err := client.conn.ReadLine()
 	if err != nil {
 		return "", err
 	}
-	if res[0] != '@' {
+	log.Println(response)
+	if response[0] != '@' {
 		log.Println("connection failed")
 		client.conn.Close()
 		return "", errors.New("connection failed")

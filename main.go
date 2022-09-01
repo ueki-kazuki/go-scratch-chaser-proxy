@@ -39,7 +39,6 @@ func handleWebSocket(c *gin.Context) {
 			log.Println(msg)
 			args := strings.Split(msg, " ")
 			cmd, args := args[0], args[1:]
-			log.Println(cmd, args)
 
 			var response string
 			switch cmd {
