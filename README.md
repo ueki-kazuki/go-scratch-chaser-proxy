@@ -19,6 +19,6 @@ sequenceDiagram
 
 ```
 go mod tidy
-go build
-./chrome-chaser-proxy
+make
+./bin/scratch-chaser-proxy
 ```

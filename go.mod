@@ -1,4 +1,4 @@
-module githu.com/ueki-kazuki/chrome-chaser-proxy
+module github.com/ueki-kazuki/scratch-chaser-proxy
 
 go 1.18
 
